@@ -9,7 +9,9 @@ echo "Updating packages/repositories" 2> /dev/null
 
 apt-get install python-software-properties build-essential -y 2> /dev/null
 add-apt-repository ppa:ondrej/php5 -y 2> /dev/null
+
 apt-get update 2> /dev/null
+apt-get upgrade 2> /dev/null
 
 echo "Installing Git" 2> /dev/null
 apt-get install git -y 2> /dev/null
@@ -69,15 +71,32 @@ xdebug.idekey="$IDEKEY"
 EOF
 fi
 
-if [ "$DEPENDENCY_MANAGEMENET" == "true" ]
+if [ "$NODE_DEPENDENCY_MANAGEMENET" == "true" ]
 then
     #
     # Install dependencies management components (npm, bower and gulp)
+    curl -sL https://deb.nodesource.com/setup_7.x | sudo -E bash -
+    # curl -sL https://deb.nodesource.com/setup_6.x | sudo -E bash -
+    apt-get install -y nodejs
+
     apt-get install -y npm
-    apt-get install -y nodejs-legacy
+    npm install npm@latest -g
+
+    # $ node --version
+    # v6.9.3
+
+    # $ npm --version
+    # 4.0.5
 
     npm install -g bower
     npm install -g gulp
+fi
+
+
+if [ "$PHP_DEPENDENCY_MANAGEMENET" == "true" ]
+then
+    #
+    # Install dependencies management components (composer, SSPAK)
 
     echo "Install composer"
     curl -s https://getcomposer.org/installer | php
@@ -86,6 +105,7 @@ then
     echo "Install SSPAK"
     curl -sS https://silverstripe.github.io/sspak/install | php -- /usr/local/bin;
 fi
+
 
 echo "Remove default index.html"
 rm -f /var/www/hml/index.html
@@ -108,5 +128,8 @@ EOF
 
 a2dissite 000-default.conf
 a2ensite 001-silverstripe.conf
+
+ssh-keyscan -H github.com >> /home/vagrant/.ssh/known_hosts
+chown vagrant:vagrant known_hosts
 
 service apache2 restart 2> /dev/null
